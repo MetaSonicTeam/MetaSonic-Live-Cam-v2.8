@@ -43,6 +43,10 @@ interface. The choice is saved in `switch_states.json`; change it later from
 the **Interface** setting in either interface. Restart the application to use
 the newly selected interface.
 
+On smaller displays, scroll within a PySide6 tab to reach its controls;
+the tab bar also has scroll buttons when not all tabs fit. PyWebView pages
+reflow into a single column and scroll vertically on narrower windows.
+
 PyWebView provides the face-swap, face-mapping, live-camera/virtual-camera,
 clothed virtual try-on, and Wan-Animate-2 workflows. It requires the
 `pywebview` Python package and, on Windows, the Microsoft Edge WebView2 Runtime.
@@ -332,11 +336,36 @@ Real-ESRGAN to the entire processed frame, including hair, clothing, hands,
 legs, and background. The ONNX model is downloaded on first use and checked by
 size and SHA-256. It is intentionally not used in webcam mode; upscaling every
 frame is compute-intensive and may introduce frame-to-frame texture changes.
-The model's 4x output is downscaled to 2x for a more manageable output size.
+Choose **Native 2x** for the smaller, faster x2 model, or **4x model to 2x** for
+the existing x4 model followed by downscaling. The native x2 ONNX model is
+downloaded on demand and validated by size and SHA-256.
 Like other generative restorers, it can synthesize plausible detail rather
-than recover exact source detail. The model is the BSD-3-Clause
+than recover exact source detail. The 4x model is the BSD-3-Clause
 [Real-ESRGAN x4plus ONNX export](https://huggingface.co/thisismert/real-esrgan-onnx),
-based on the project's official photo-restoration weights.
+based on the project's official photo-restoration weights. The native x2
+export is a verified FP16 conversion of official Real-ESRGAN x2plus weights
+from [SkillSafe's ONNX model card](https://huggingface.co/skillsafe-ai/realesrgan-x2plus).
+
+**LivePortrait** is available for offline driving-video animation and as a
+processing mode on the live-camera page. Select a source portrait and a driving
+video; the app downloads its four core ONNX models on first use (about 339 MB).
+Optional eye and lip retargeting can be enabled in Settings; both are off by
+default. Each enabled retargeter downloads its small ONNX model on first use
+and uses 106-point face landmarks from the driving video to preserve eye
+closure and mouth openness.
+An NVIDIA CUDA provider is recommended for practical speed; CPU execution is
+supported but substantially slower. FFmpeg is required to finalize the MP4/MKV
+and preserve the driving video's audio. The default-on disclosure label reads
+**AI PORTRAIT ANIMATION**. LivePortrait animates a detected face/head only; it
+does not animate the full body, hands, legs, clothing, or background. For
+full-body character motion, use the separate Wan-Animate-2 workflow.
+
+The optional **Face parsing mask** downloads a 19-class face-parsing ONNX model
+on first use and refines face paste-back edges for face swap and LivePortrait.
+It adds inference time and is disabled by default. Third-party model weights
+have separate license and usage terms; verify each weight's terms before
+commercial use or redistribution. In particular, repository-level license
+labels do not necessarily grant commercial rights to every included model.
 
 The optional **NSFW warning** switch scans selected images, offline videos,
 and webcam frames. It only displays a warning; processing is never blocked.
@@ -413,6 +442,15 @@ installed and its Virtual Camera started. The project does not bundle either
 driver. The separate bridge uses `pyvirtualcam` (GPL-2.0-only) in its own
 process/environment; the remaining app dependencies and DirectML environment
 are unchanged.
+
+The **Face swap model** selector offers the existing INSwapper 128 and optional
+HyperSwap 1a 256 for face swapping in live and offline modes. INSwapper remains
+the default. HyperSwap downloads approximately 403 MB on first use; its speed
+and visual quality depend on the GPU and source footage. FaceFusion identifies
+the HyperSwap weights as ResearchRAIL-licensed, and the InsightFace recognition
+models have separate non-commercial restrictions. Review the
+[model licenses](https://docs.facefusion.io/introduction/licenses) before use
+or redistribution. HyperSwap does not replace the full body.
 
 **OpenVINO™ Execution Provider (Intel)**
 
